@@ -1,19 +1,131 @@
-function agregarFilaDebajo(row) {
-  const newRow = document.createElement("tr");
+tengo un problema con este flujo
 
-  newRow.innerHTML = `
-    <td>Nuevo</td>
-    <td contenteditable="true" class="editable">0</td>
-    <td>0</td>
-    <td contenteditable="true" class="editable">0</td>
-    <td>0</td>
-    <td>0</td>
-    <td>
-      <button class="btn btn-sm bg-target agregarBajada">
-        <i class="fas fa-plus"></i>
-      </button>
-    </td>
-  `;
+async tblPresentacionSubtelas(folio, notbl, domtbl) {
+    const data = new FormData();
+    let body = "";
+    let presentacion = "";
+    data.append("folio", folio);
+    data.append("notbl", notbl);
+    const respuestaraw = await fetch(
+      "php/presentacion.php?tblPresentacionSubTelas",
+      {
+        method: "POST",
+        body: data,
+      },
+    );
+    const respuesta = await respuestaraw.json();
+    let acumuladoMM2 = 0;
+    let accmml = 0;
+    let mm2 = 0;
+    let peso = 0;
+    let acummuladoPeso = 0;
+    respuesta.forEach((newelement) => {
+      mm2 = (newelement.ML * newelement.panalxcaja) / 1000;
+      accmml = accmml + newelement.ML;
+      acumuladoMM2 = acumuladoMM2 + mm2;
+      peso = peso + newelement.PesoTotal;
+      acummuladoPeso = acummuladoPeso + newelement.PesoTotal;
+      body += `
+            <tr data-id="${newelement.id}">
+              <td>${newelement.NoBajada}</td>
+              <td contenteditable="true" class="editable" onblur="getCellValueTelas(this)">${newelement.ML}</td>
+              <td>${mm2}</td>
+              <td contenteditable="true" class="editable" onblur="getCellValueTelas(this)">${newelement.PesoTotal}</td>
+              <td>${acumuladoMM2}</td>
+              <td>${acummuladoPeso}</td>  
+              <td><button class="btn btn-sm bg-target"><i class="fas fa-plus"></i></button></td>
+            </tr>`;
+      presentacion = newelement.Clave;
+      this.savePresentacionaditionalTelas(
+        newelement.id,
+        newelement.ML,
+        newelement.PesoTotal,
+        mm2,
+        acumuladoMM2,
+        acummuladoPeso,
+      );
+    });
+    document.getElementById("presentacion" + notbl + "telas").value =
+      presentacion;
+    if (body != "") {
+      document.getElementById("presentacion" + notbl + "telas").disabled = true;
+      document.getElementById("savePresentacion" + notbl + "telas").disabled =
+        true;
+      body += `<tr>
+                <td class="fw-bold">Total</td>
+                <td>${accmml}</td>
+                <td></td>
+                <td></td>
+                <td>${acumuladoMM2}</td>
+                <td>${acummuladoPeso}</td>
+              </tr>`;
+      // let acumant = document.getElementById("mmltotal").value;
+      // let rollosant = document.getElementById("rollostotal").value;
+      // let mop = rollosant * mmlmop;
+      // let mermamml = mop / acumant - 1;
+      // acumant = +acumant + +acumulado;
+      // rollosant = +rollosant + +sumarollos;
+      // document.getElementById("mmltotal").value = acumant;
+      // document.getElementById("rollostotal").value = rollosant;
+      // document.getElementById("mmltotalMop").value = mop;
+      // document.getElementById("mermammltotal").value = mermamml.toFixed(2);
+    } else {
+      document.getElementById("presentacion" + notbl + "telas").disabled =
+        false;
+      document.getElementById("savePresentacion" + notbl + "telas").disabled =
+        false;
+    }
+    document.getElementById(domtbl).innerHTML = body;
+    this.sumarTodoTelas();
+    this.permitirSoloNumeros(domtbl);
+  }
 
-  row.parentNode.insertBefore(newRow, row.nextSibling);
+
+getCellValueTelas(cell) {
+  const folio = document.getElementById("folio").value;
+  const row = cell.parentNode;
+  const rowId = row.getAttribute("data-id");
+  const cells = row.querySelectorAll("td");
+  const cellIndex = Array.from(row.children).indexOf(cell);
+  console.log(cells);
+
+  let ML = parseFloat(cells[1].innerText) || 0;
+  let peso = parseFloat(cells[3].innerText) || 0;
+
+  // ✅ Si editaste ML, recalcula mm2 aquí
+  let panalxcaja = parseFloat(cells[2].dataset.panalxcaja || 0);
+  let mm2 = (ML * panalxcaja) / 1000;
+  console.log(cells[4].innerText);
+
+  this.savePresentacionaditionalTelas(
+    rowId,
+    ML,
+    mm2,
+    peso,
+    cells[4].innerText,
+    cells[5].innerText,
+  ).then(() => {
+    const table = cell.closest("table");
+
+    table.id === "tablapresentacion1telas" &&
+      this.tblPresentacionSubtelas(folio, 1, "tblpresentacionsub1telas");
+
+    table.id === "tablapresentacion2telas" &&
+      this.tblPresentacionSubtelas(folio, 2, "tblpresentacionsub2telas");
+
+    table.id === "tablapresentacion3telas" &&
+      this.tblPresentacionSubtelas(folio, 3, "tblpresentacionsub3telas");
+  });
 }
+
+Y es que por ejemplo para un registro si digamos edito el valor de la celda 1 si se pasan los valores correspondientes de los cálculos y el de la celda 3 igual que corresponden a ml y peso, pero si tengo digamos un segundo registro o una segunda fila al momento de meter datos en sus celdas correspondientes todos los valores se ven afectados
+
+Mira
+
+# Bajada	ML	MM2	Peso Total	Acum MM2	Acum KG2	
+0	1	0.2	3	0.2	3	
+0	1	0.2	3.2	0.4	3.2	
+Total	2			0.4	3.2
+
+
+
