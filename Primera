@@ -1,4 +1,4 @@
-tengo un problema con este flujo
+Como lo agrego al final o como le hago paa que sea solo un boton ?
 
 async tblPresentacionSubtelas(folio, notbl, domtbl) {
     const data = new FormData();
@@ -33,14 +33,13 @@ async tblPresentacionSubtelas(folio, notbl, domtbl) {
               <td contenteditable="true" class="editable" onblur="getCellValueTelas(this)">${newelement.PesoTotal}</td>
               <td>${acumuladoMM2}</td>
               <td>${acummuladoPeso}</td>  
-              <td><button class="btn btn-sm bg-target"><i class="fas fa-plus"></i></button></td>
             </tr>`;
       presentacion = newelement.Clave;
       this.savePresentacionaditionalTelas(
         newelement.id,
         newelement.ML,
-        newelement.PesoTotal,
         mm2,
+        newelement.PesoTotal,
         acumuladoMM2,
         acummuladoPeso,
       );
@@ -79,53 +78,3 @@ async tblPresentacionSubtelas(folio, notbl, domtbl) {
     this.sumarTodoTelas();
     this.permitirSoloNumeros(domtbl);
   }
-
-
-getCellValueTelas(cell) {
-  const folio = document.getElementById("folio").value;
-  const row = cell.parentNode;
-  const rowId = row.getAttribute("data-id");
-  const cells = row.querySelectorAll("td");
-  const cellIndex = Array.from(row.children).indexOf(cell);
-  console.log(cells);
-
-  let ML = parseFloat(cells[1].innerText) || 0;
-  let peso = parseFloat(cells[3].innerText) || 0;
-
-  // ✅ Si editaste ML, recalcula mm2 aquí
-  let panalxcaja = parseFloat(cells[2].dataset.panalxcaja || 0);
-  let mm2 = (ML * panalxcaja) / 1000;
-  console.log(cells[4].innerText);
-
-  this.savePresentacionaditionalTelas(
-    rowId,
-    ML,
-    mm2,
-    peso,
-    cells[4].innerText,
-    cells[5].innerText,
-  ).then(() => {
-    const table = cell.closest("table");
-
-    table.id === "tablapresentacion1telas" &&
-      this.tblPresentacionSubtelas(folio, 1, "tblpresentacionsub1telas");
-
-    table.id === "tablapresentacion2telas" &&
-      this.tblPresentacionSubtelas(folio, 2, "tblpresentacionsub2telas");
-
-    table.id === "tablapresentacion3telas" &&
-      this.tblPresentacionSubtelas(folio, 3, "tblpresentacionsub3telas");
-  });
-}
-
-Y es que por ejemplo para un registro si digamos edito el valor de la celda 1 si se pasan los valores correspondientes de los cálculos y el de la celda 3 igual que corresponden a ml y peso, pero si tengo digamos un segundo registro o una segunda fila al momento de meter datos en sus celdas correspondientes todos los valores se ven afectados
-
-Mira
-
-# Bajada	ML	MM2	Peso Total	Acum MM2	Acum KG2	
-0	1	0.2	3	0.2	3	
-0	1	0.2	3.2	0.4	3.2	
-Total	2			0.4	3.2
-
-
-
