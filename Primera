@@ -1,192 +1,136 @@
-Tengo esta funcion
+Bueno ahora tengo esto que es igual tablas pero con otras cosas
 
-sumartodo() {
-    let a = 0;
-
-    // Obtiene los cuerpos de las tablas
-    const table1 = document
-      .getElementById("tablapresentacion1")
-      ?.getElementsByTagName("tbody")[0];
-    const table2 = document
-      .getElementById("tablapresentacion2")
-      ?.getElementsByTagName("tbody")[0];
-    const table3 = document
-      .getElementById("tablapresentacion3")
-      ?.getElementsByTagName("tbody")[0];
-    const table4 = document
-      .getElementById("tablapresentacion4")
-      ?.getElementsByTagName("tbody")[0];
-
-    // Tabla de merma donde se van a poner los resultados
-    const sumTable = document
-      .getElementById("sumTable")
-      .getElementsByTagName("tbody")[0];
-
-    // Obtiene las filas de cada tabla
-    const rows1 = table1 ? table1.getElementsByTagName("tr") : [];
-    const rows2 = table2 ? table2.getElementsByTagName("tr") : [];
-    const rows3 = table3 ? table3.getElementsByTagName("tr") : [];
-    const rows4 = table4 ? table4.getElementsByTagName("tr") : [];
-    const row1golpes = sumTable ? sumTable.getElementsByTagName("tr") : [];
-
-    // Calcula el numero maximo de filas entre las tablas
-    const rowCount = Math.max(
-      rows1.length,
-      rows2.length,
-      rows3.length,
-      rows4.length,
-    );
-
-    for (let i = 0; i < rowCount - 1; i++) {
-      // Obtiene el valor de la tercera celda, si no existe se usa 0
-      // como valor por defecto
-      const cell1 = rows1[i]
-        ? rows1[i].getElementsByTagName("td")[2]
-        : { textContent: 0 };
-      const cell2 = rows2[i]
-        ? rows2[i].getElementsByTagName("td")[2]
-        : { textContent: 0 };
-      const cell3 = rows3[i]
-        ? rows3[i].getElementsByTagName("td")[2]
-        : { textContent: 0 };
-      const cell4 = rows4[i]
-        ? rows4[i].getElementsByTagName("td")[2]
-        : { textContent: 0 };
-
-      // Contiene los valores de las celdas de la primera columna
-      // de la tabla de golpes
-      const cellgolpes = row1golpes[i]
-        ? row1golpes[i].getElementsByTagName("td")[0]
-        : { textContent: 0 };
-
-      // Convierte los valores a numeros decimales
-      const value1 = parseFloat(cell1.textContent, 10);
-      const value2 = parseFloat(cell2.textContent, 10);
-      const value3 = parseFloat(cell3.textContent, 10);
-      const value4 = parseFloat(cell4.textContent, 10);
-      const valuegolpes = cellgolpes.textContent;
-
-      // Realiza la suma de los valores
-      let sum = value1 + value2 + value3 + value4;
-      let sum2 = valuegolpes;
-      let newRow = sumTable.rows[i];
-      let newCell2 = newRow.cells[1];
-      a = a + sum;
-      let merma = sum2 - sum;
-      merma = sum2 == 0 ? 0 : (merma / sum2) * 100;
-
-      // En esta parte, despues de hacer todo el calculo,
-      // se asigna el valor de lo que se calculo en la celda
-      // correspondiente de la tabla
-      newCell2.textContent = this.checkInfinity(merma.toFixed(2));
-    }
-  }
-
-Que sirve para este flujo
-async tblPresentacionSub(folio, notbl, domtbl) {
+async tblPresentacionSubtelas(folio, notbl, domtbl) {
     const data = new FormData();
     let body = "";
     let presentacion = "";
     data.append("folio", folio);
     data.append("notbl", notbl);
     const respuestaraw = await fetch(
-      "php/presentacion.php?tblPresentacionSub",
+      "php/presentacion.php?tblPresentacionSubTelas",
       {
         method: "POST",
         body: data,
       },
     );
     const respuesta = await respuestaraw.json();
-    console.log(respuesta);
-    let sumareal = 0;
-    let golpes = 0;
-    let cajasxpanal = 0;
-    let std = 0;
+    let acumuladoMM2 = 0;
+    let mm2 = 0;
+    let acummuladoPeso = 0;
     respuesta.forEach((newelement) => {
-      sumareal = sumareal + newelement.real;
-      cajasxpanal = sumareal * newelement.panalxcaja;
-      std = (sumareal * newelement.factor).toFixed(3);
+      mm2 = (newelement.ML * newelement.panalxcaja) / 1000;
+      acumuladoMM2 = acumuladoMM2 + mm2;
+      acummuladoPeso = acummuladoPeso + newelement.PesoTotal;
       body += `
-      <tr data-id="${newelement.id}">
-        <td>${newelement.hora}</td>
-        <td contenteditable="true" class="editable" onblur="getCellValue(this)">${newelement.real}</td>
-        <td>${cajasxpanal}</td>
-        <td>${sumareal}</td>
-        <td>${std}</td>
-      </tr>
-      `;
-
-      presentacion = newelement.presentacion;
-      this.savePresentacionaditional(
+            <tr data-id="${newelement.id}">
+              <td>${newelement.NoBajada}</td>
+              <td contenteditable="true" class="editable" onblur="getCellValueTelas(this)">${newelement.ML}</td>
+              <td>${mm2}</td>
+              <td contenteditable="true" class="editable" onblur="getCellValueTelas(this)">${newelement.PesoTotal}</td>
+              <td>${acumuladoMM2}</td>
+              <td>${acummuladoPeso}</td>  
+              <td><button class="btn btn-sm bg-target" id="agregarBajada"><i class="fas fa-plus"></i></button></td>
+            </tr>`;
+      presentacion = newelement.Clave;
+      this.savePresentacionaditionalTelas(
         newelement.id,
-        newelement.real,
-        cajasxpanal,
-        sumareal,
-        std,
+        newelement.ML,
+        newelement.PesoTotal,
+        mm2,
+        acumuladoMM2,
+        acummuladoPeso,
       );
     });
-    document.getElementById("presentacion" + notbl).value = presentacion;
+    document.getElementById("presentacion" + notbl + "telas").value =
+      presentacion;
     if (body != "") {
-      document.getElementById("presentacion" + notbl).disabled = true;
-      document.getElementById("savePresentacion" + notbl).disabled = true;
-      body += `<tr><td class="fw-bold">Total</td><td>${sumareal}</td><td></td><td>${golpes}</td></tr>`;
+      document.getElementById("presentacion" + notbl + "telas").disabled = true;
+      document.getElementById("savePresentacion" + notbl + "telas").disabled =
+        true;
+      body += `<tr>
+                <td class="fw-bold">Total</td>
+                <td>${0}</td>
+                <td></td>
+                <td>${0}</td>
+              </tr>`;
+      // let acumant = document.getElementById("mmltotal").value;
+      // let rollosant = document.getElementById("rollostotal").value;
+      // let mop = rollosant * mmlmop;
+      // let mermamml = mop / acumant - 1;
+      // acumant = +acumant + +acumulado;
+      // rollosant = +rollosant + +sumarollos;
+      // document.getElementById("mmltotal").value = acumant;
+      // document.getElementById("rollostotal").value = rollosant;
+      // document.getElementById("mmltotalMop").value = mop;
+      // document.getElementById("mermammltotal").value = mermamml.toFixed(2);
     } else {
-      document.getElementById("presentacion" + notbl).disabled = false;
-      document.getElementById("savePresentacion" + notbl).disabled = false;
+      document.getElementById("presentacion" + notbl + "telas").disabled =
+        false;
+      document.getElementById("savePresentacion" + notbl + "telas").disabled =
+        false;
     }
     document.getElementById(domtbl).innerHTML = body;
     this.sumartodo();
     this.permitirSoloNumeros(domtbl);
-
-    // Acceder al tbody de la tabla sumTable
-    const sumTableBody = document.querySelector("#sumTable tbody");
-    const rows = sumTableBody.querySelectorAll("tr");
-    this.getCellValueGolpesDos(rows);
   }
-getCellValue(cell) {
-    const folio = document.getElementById("folio").value;
-    const row = cell.parentNode;
-    const rowId = row.getAttribute("data-id");
-    const cells = row.querySelectorAll("td");
-    const editableValue = cell.innerText;
+getCellValueTelas(cell) {
+  const folio = document.getElementById("folio").value;
+  const row = cell.parentNode;
+  const rowId = row.getAttribute("data-id");
+  const cells = row.querySelectorAll("td");
+  const cellIndex = Array.from(row.children).indexOf(cell);
+  console.log(cells);
+
+  let ML = parseFloat(cells[1].innerText) || 0;
+  let peso = parseFloat(cells[3].innerText) || 0;
+
+  // ✅ Si editaste ML, recalcula mm2 aquí
+  let panalxcaja = parseFloat(cells[2].dataset.panalxcaja || 0);
+  let mm2 = (ML * panalxcaja) / 1000;
+  console.log(cells[4].innerText);
+
+  this.savePresentacionaditionalTelas(
+    rowId,
+    ML,
+    mm2,
+    peso,
+    cells[4].innerText,
+    cells[5].innerText,
+  ).then(() => {
     const table = cell.closest("table");
 
-    this.savePresentacionaditional(
-      rowId,
-      editableValue,
-      cells[2].innerText,
-      cells[3].innerText,
-      cells[4].innerText,
-    ).then(() => {
-      table.id == "tablapresentacion1" &&
-        this.tblPresentacionSub(folio, 1, "tblpresentacionsub1");
-      table.id == "tablapresentacion2" &&
-        this.tblPresentacionSub(folio, 2, "tblpresentacionsub2");
-      table.id == "tablapresentacion3" &&
-        this.tblPresentacionSub(folio, 3, "tblpresentacionsub3");
-      table.id == "tablapresentacion4" &&
-        this.tblPresentacionSub(folio, 4, "tblpresentacionsub4");
-    });
-  }
+    table.id === "tablapresentacion1telas" &&
+      this.tblPresentacionSubtelas(folio, 1, "tblpresentacionsub1telas");
 
-async savePresentacionaditional(id, real, cajaxp, aum, std) {
+    table.id === "tablapresentacion2telas" &&
+      this.tblPresentacionSubtelas(folio, 2, "tblpresentacionsub2telas");
+
+    table.id === "tablapresentacion3telas" &&
+      this.tblPresentacionSubtelas(folio, 3, "tblpresentacionsub3telas");
+  });
+}
+
+async savePresentaciontelas(folio, presentacion, turnoen, notbl) {
     const data = new FormData();
-    data.append("id", id);
-    data.append("real", real);
-    data.append("cajaxp", cajaxp);
-    data.append("aum", aum);
-    data.append("std", std);
-    const respuestaraw = await fetch("php/presentacion.php?updatedatatbl", {
-      method: "POST",
-      body: data,
-    });
-    respuestaraw.ok
-      ? null
-      : swal.fire(
-          "ERROR",
-          "Hay un problema al actualizar la información",
-          "error",
-        );
+    data.append("folio", folio);
+    data.append("presentacion", presentacion);
+    data.append("turnoen", turnoen);
+    data.append("notbl", notbl);
+    const respuestaraw = await fetch(
+      "php/presentacion.php?savePresentaciontelas",
+      {
+        method: "POST",
+        body: data,
+      },
+    );
+    respuestaraw.status === 200 &&
+      swal.fire("Listo", "La acción se completo correctamente", "success");
+    respuestaraw.status === 500 &&
+      swal.fire(
+        "ERROR",
+        "Hay problema al guardar en la base de datos",
+        "error",
+      );
   }
 
-Hata ahi todo bien?
+Y necesitom ahora crear una funcion que sirva como la de suamrTodo pero ahora para este nuevo flujo de tablas
