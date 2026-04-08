@@ -1,0 +1,247 @@
+Me da este error
+
+Array
+(
+    [0] => Array
+        (
+            [0] => 42000
+            [SQLSTATE] => 42000
+            [1] => 8114
+            [code] => 8114
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Error converting data type varchar to int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Error converting data type varchar to int.
+        )
+
+)
+
+
+En esta funcion php
+
+function guardarempleado()
+	{
+		$ClassConexion = new ClassConexion();
+		$NoEmp = $_POST['NoEmp'];
+		$Nombres = $_POST['Nombres'];
+		$ApellidoPaterno = $_POST['ApellidoPaterno'];
+		$ApellidoMaterno = $_POST['ApellidoMaterno'];
+		$IdCentroCosto = $_POST['IdCentroCosto'];
+		$NombreDepartamento = $_POST['NombreDepartamento'];
+		$JefeInm = $_POST['JefeInm'];
+		$Puesto = $_POST['Puesto'];
+		$TipoTrabajador = $_POST['TipoTrabajador'];
+		$FechaIngreso = $_POST['FechaIngreso'];
+		$IdClvEstadoCivil = $_POST['IdClvEstadoCivil'];
+		$FechaVencimientoContrato = $_POST['FechaVencimientoContrato'];
+		$IMSS = $_POST['IMSS'];
+		$RFC = $_POST['RFC'];
+		$CURP = $_POST['CURP'];
+		$Telefono = $_POST['Telefono'];
+		$Telefono1 = $_POST['Telefono1'];
+		$Telefono2 = $_POST['Telefono2'];
+		$IdClvNivelEstudios = $_POST['IdClvNivelEstudios'];
+		$IdClvProbatorio = $_POST['IdClvProbatorio'];
+		$IdClvEntidad = $_POST['IdClvEntidad'];
+		$ClvMunicipioYDelegacion = $_POST['ClvMunicipioYDelegacion'];
+		$Domicilio = $_POST['Domicilio'];
+		$FechaAntiguedad = $_POST['FechaAntiguedad'];
+		$IdClvDiscapacidad = $_POST['IdClvDiscapacidad'];
+		$NoHijosDependientes = $_POST['NoHijosDependientes'];
+		$IdClvOcupaciones = $_POST['IdClvOcupaciones'];
+		$AnioEmisionDocto = $_POST['AnioEmisionDocto'];
+		$IdClvInstitucionEducativa = $_POST['IdClvInstitucionEducativa'];
+		$NombreEstudioCarrera = $_POST['NombreEstudioCarrera'];
+		$FechaBja = $_POST['FechaBaja'];
+		$IdMotivoBaja = $_POST['IdMotivoBaja'];
+		$OtroMotivoBaja = $_POST['OtroMotivoBaja'];
+		$IdCentroCostoReal = $_POST['IdCentroCostoReal'];
+		$NoDeptoReal = $_POST['NoDeptoReal'];
+		$Sexo = $_POST['Sexo'];
+		$RecibeOferta = isset($_POST['RecibeOferta']) ? $RecibeOferta = 1 : $RecibeOferta = 0;
+		$Bajas = isset($_POST['Bajas']) ? $Bajas = 1 : $Bajas = 0;
+		$EmpleadoSindicalizado = isset($_POST['EmpleadoSindicalizado']) ? $EmpleadoSindicalizado = 1 : $EmpleadoSindicalizado = 0;
+		$prsedure = "pa_P009_00101_02_GuardartblEmpleados '" . $NoEmp . "','" . $Nombres . "','" . $ApellidoPaterno . "','" . $ApellidoMaterno . "','" . $IdCentroCosto . "','" . $NombreDepartamento . "','" . $IMSS . "','" . $RFC . "','" . $CURP . "','" . $IdClvEstadoCivil . "','" . $Puesto . "','" . $FechaIngreso . "','" . $Telefono . "','" . $Telefono1 . "','" . $Telefono2 . "','" . $Domicilio . "','" . $IdClvEntidad . "','" . $ClvMunicipioYDelegacion . "','" . $IdClvNivelEstudios . "','" . $FechaVencimientoContrato . "','" . $TipoTrabajador . "','" . $RecibeOferta . "','" . $FechaAntiguedad . "','" . $FechaBja . "','" . $IdMotivoBaja . "','" . $OtroMotivoBaja . "','" . $EmpleadoSindicalizado . "','" . $JefeInm . "','" . $IdClvProbatorio . "','0','" . $IdClvDiscapacidad . "','" . $NoHijosDependientes . "','" . $IdClvOcupaciones . "','" . $AnioEmisionDocto . "','" . $IdClvInstitucionEducativa . "','" . $NombreEstudioCarrera . "','','" . $IdCentroCostoReal . "','" . $NoDeptoReal . "','" . $Sexo . "',46686";
+		$conn = $ClassConexion->conexion("TLX032MXDB");
+		$result = sqlsrv_query($conn, $prsedure);
+		if ($result === false) {
+			die(print_r(sqlsrv_errors(), true));
+		} else {
+			sqlsrv_fetch($result);
+			$existe = sqlsrv_get_field($result, 0);
+			echo json_encode($existe == 2 ? "existe" : 'ok');
+		}
+		sqlsrv_close($conn);
+	}
+
+Que ejecuta esto
+USE [TLX032MXDB]
+GO
+/****** Object:  StoredProcedure [dbo].[pa_P009_00101_02_GuardartblEmpleados]    Script Date: 08/04/2026 12:52:42 p. m. ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [dbo].[pa_P009_00101_02_GuardartblEmpleados]
+@NoEmp int, 
+@Nombres nvarchar(255),
+@ApellidoPaterno nvarchar(255),
+@ApellidoMaterno nvarchar(255),
+@IdCentroCosto int,
+@NombreDepartamento int,
+@IMSS nvarchar(250),
+@RFC nvarchar(250),
+@CURP nvarchar(250),
+@IdClvEstadoCivil int,
+@Puesto nvarchar(255),
+@FechaIngreso nvarchar(25),
+@Telefono nvarchar(250),
+@Telefono1 nvarchar(250),
+@Telefono2 nvarchar(250),
+@Domicilio nvarchar(1000),
+@IdClvEntidad int,
+@ClvMunicipioYDelegacion int,
+@IdClvNivelEstudios int,
+@FechaVencimientoContrato nvarchar(25),
+--@ContrasenaOpcional nvarchar(255) = 'mexico2023',
+@TipoTrabajador nvarchar(20),
+@RecibeOferta bit,
+@FechaAntiguedad nvarchar(25),
+@FechaBaja nvarchar(25),
+@IdMotivoBaja int,
+@OtroMotivoBaja nvarchar(150),
+@EmpleadoSindicalizado bit,
+@JefeInm int,
+@IdClvDocProbatorio int,
+@Result int output,
+@IdClvDiscapacidad int, 
+@NoHijosDependientes int,
+@IdClvOcupaciones int,
+@AnioEmisionDocto int,
+@IdClvTipoInstEducativa int,
+@NombreEstudioCarrera nvarchar(150),
+@EstadoCivil nvarchar(50),
+@IdCentroCostoReal int,
+@NoDeptoReal int,
+@Sexo nvarchar(50),
+@NoEmpEdito int
+
+
+AS
+    BEGIN 
+        IF NOT EXISTS (SELECT NoEmp
+				   FROM tblEmpleados
+				   WHERE (NoEmp = @NoEmp))
+				   
+			BEGIN 
+			SET @Result = 1
+
+            INSERT INTO tblEmpleados
+            (NoEmp,
+            Nombres,
+            ApellidoPaterno,
+            ApellidoMaterno,
+            IdCentroCosto,
+            NombreDepartamento,
+            IMSS,
+            RFC,
+            CURP,
+            IdClvEstadoCivil,
+            Puesto,
+            FechaIngreso,
+            Telefono,
+            Telefono1,
+            Telefono2,
+            Domicilio,
+            IdClvEntidad,
+            ClvMunicipioYDelegacion,
+            IdClvNivelEstudios,
+            FechaVencimientoContrato,
+            --ContrasenaOpcional,
+            TipoTrabajador,
+            RecibeOferta,
+            FechaAntiguedad, 
+            FechaBaja,
+            IdMotivoBaja,
+            OtroMotivoBaja,
+            EmpleadoSindicalizado,
+            JefeInm, 
+            IdClvDocProbatorio,
+            DiasVacaciones,
+            IdClvDiscapacidad,
+            NoHijosDependientes,
+            IdClvOcupaciones,
+            AnioEmisionDocto,
+            IdClvTipoInstEducativa,
+            NombreEstudioCarrera, 
+            EstadoCivil,
+			IdCentroCostoReal,
+			NoDeptoReal,
+			Sexo,
+			NoEmpEdito)
+            
+		    VALUES 
+		    (@NoEmp,
+		    @Nombres,
+		    @ApellidoPaterno,
+		    @ApellidoMaterno,
+            @IdCentroCosto,
+            @NombreDepartamento,
+            @IMSS,
+            @RFC,
+            @CURP,
+            @IdClvEstadoCivil,
+            @Puesto,
+            CASE @FechaIngreso 
+            WHEN '' THEN GETDATE() 
+            ELSE CONVERT(DATETIME,@FechaIngreso,120)
+            END,
+            @Telefono,
+            @Telefono1,
+            @Telefono2,
+            @Domicilio,
+            @IdClvEntidad,
+            @ClvMunicipioYDelegacion,
+            @IdClvNivelEstudios,
+            CASE @FechaVencimientoContrato
+            WHEN '' THEN NULL
+            ELSE CONVERT(DATETIME,@FechaVencimientoContrato,120)
+            END,
+            --@ContrasenaOpcional,
+            @TipoTrabajador,
+            @RecibeOferta,
+            CASE @FechaAntiguedad
+            WHEN '' THEN NULL
+            ELSE CONVERT(DATETIME, @FechaAntiguedad,120)
+            END,
+            CASE @FechaBaja
+            WHEN '' THEN NULL
+            ELSE CONVERT(DATETIME, @FechaBaja, 120)
+            END,
+            @IdMotivoBaja, 
+            @OtroMotivoBaja,
+            @EmpleadoSindicalizado,
+            @JefeInm,
+            @IdClvDocProbatorio,
+            0, 
+            @IdClvDiscapacidad,
+            @NoHijosDependientes,
+            @IdClvOcupaciones,
+            @AnioEmisionDocto,
+            @IdClvTipoInstEducativa,
+            @NombreEstudioCarrera,
+            ISNULL(@EstadoCivil, ''),
+			@IdCentroCostoReal ,
+            @NoDeptoReal,
+			@Sexo,
+			@NoEmpEdito)
+                                       
+            INSERT INTO tblContadorInicialVacaciones(NoEmp, DiasIniciales)
+            VALUES (@NoEmp, 0)
+           END
+        ELSE
+            BEGIN
+		    
+	        SET @Result = 2
+            END
+        
+    END
+
