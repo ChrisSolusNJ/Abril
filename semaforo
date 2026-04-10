@@ -15,7 +15,6 @@ function obtenerTurno($fecha)
     return 3; // Turno 3: 22:30 a 07:00
 }
 
-
 class Semaforo
 {
     function hora_actual()
@@ -37,11 +36,24 @@ class Semaforo
         $Conecta = new ClassConexion();
         $conn = $Conecta->conexion("TLX004MXDB");
         $turno = $this->hora_actual();
-
-        $sql = "SELECT COUNT(*) AS Total FROM tblMXPRCalidadMaquinas Where Turno = ?";
-        $params = [$turno];
+        
+        // Obtener la máquina desde el parámetro GET
+        $maquina = isset($_GET["maquina"]) ? $_GET["maquina"] : null;
+        
+        // Si no se especifica máquina, devolver error
+        if (!$maquina) {
+            echo json_encode([
+                'success' => false,
+                'error' => 'No se especificó la máquina'
+            ]);
+            return;
+        }
+        
+        // Contar registros del turno actual para la máquina específica
+        $sql = "SELECT COUNT(*) AS Total FROM tblMXPRCalidadMaquinas WHERE Turno = ? AND NoMaquina = ?";
+        $params = [$turno, $maquina];
         $stmt = sqlsrv_query($conn, $sql, $params);
-
+        
         $total = 0;
         if ($stmt) {
             if (sqlsrv_fetch($stmt)) {
@@ -51,8 +63,11 @@ class Semaforo
         }
 
         $sqlUltimos = "SELECT TOP 10 idReporteCalidad, Inspeccionadas, SD, QL, Observaciones, NoMaquina, fechaSave, Turno 
-                        FROM tblMXPRCalidadMaquinas ORDER BY FechaHora DESC";
-        $stmtUltimos = sqlsrv_query($conn, $sqlUltimos);
+                        FROM tblMXPRCalidadMaquinas 
+                        WHERE NoMaquina = ?
+                        ORDER BY FechaHora DESC";
+        $paramsUltimos = [$maquina];
+        $stmtUltimos = sqlsrv_query($conn, $sqlUltimos, $paramsUltimos);
         $ultimos = [];
 
         if ($stmtUltimos) {
@@ -65,30 +80,137 @@ class Semaforo
             sqlsrv_free_stmt($stmtUltimos);
         }
 
+        // Estadísticas por turno para la máquina específica HOY
         $sqlStats = "SELECT
                         SUM(CASE WHEN Turno = 1 THEN 1 ELSE 0 END) AS Turno1,
                         SUM(CASE WHEN Turno = 2 THEN 1 ELSE 0 END) AS Turno2,
                         SUM(CASE WHEN Turno = 3 THEN 1 ELSE 0 END) AS Turno3
-                    FROM tblMXPRCalidadMaquinas WHERE CAST(fechaSave AS DATE) = CAST(GETDATE() AS DATE)";
-        $stmtStats = sqlsrv_query($conn, $sqlStats);
+                    FROM tblMXPRCalidadMaquinas 
+                    WHERE CAST(fechaSave AS DATE) = CAST(GETDATE() AS DATE) 
+                    AND NoMaquina = ?";
+        $paramsStats = [$maquina];
+        $stmtStats = sqlsrv_query($conn, $sqlStats, $paramsStats);
         $statsHoy = ["Turno1" => 0, "Turno2" => 0, "Turno3" => 0];
 
         if ($stmtStats) {
             $statsHoy = sqlsrv_fetch_array($stmtStats, SQLSRV_FETCH_ASSOC);
             sqlsrv_free_stmt($stmtStats);
         }
+        
         echo json_encode([
             'success' => true,
+            'maquina' => $maquina,
             'turno_actual' => $turno,
             'total_registros_turno' => (int) $total,
             'estadisticas_hoy' => $statsHoy,
             'ultimos_registros' => $ultimos
         ]);
     }
-
 }
 
 if (isset($_GET["obtenerRegistrosTurno"])) {
     $BitacoraElectronica = new Semaforo();
     $BitacoraElectronica->obtenerRegistrosTurno();
 }
+?>
+
+
+
+
+class SemaforoManager {
+    constructor(maquinaId) {
+        this.maquinaId = maquinaId;
+        this.currentTurno = null;
+        
+        // Elementos DOM
+        this.luzAmarillo = document.getElementById(`luzAmarillo${maquinaId}`);
+        this.luzNaranja = document.getElementById(`luzNaranja${maquinaId}`);
+        this.luzRojo = document.getElementById(`luzRojo${maquinaId}`);
+        this.tachesContainer = document.getElementById(`tachesContainer${maquinaId}`);
+    }
+
+    async obtenerRegistros() {
+        try {
+            // Ahora pasamos el parámetro maquina en la URL
+            const response = await fetch(`../produccion/php/semaforo.php?obtenerRegistrosTurno&maquina=${this.maquinaId}`);
+            const data = await response.json();
+            
+            if(data.success){
+                this.currentTurno = data.turno_actual;
+                const totalRegistros = data.total_registros_turno;
+                this.actualizarSemaforoTaches(totalRegistros);
+            } else {
+                console.error(`Error en respuesta para ${this.maquinaId}:`, data.error);
+            }
+        } catch (error) {
+            console.error(`Error al obtener estadísticas para ${this.maquinaId}:`, error);
+        }
+    }
+
+    actualizarSemaforoTaches(cantidad) {
+        // Semáforo
+        const amarillo = cantidad >= 1;
+        const naranja = cantidad >= 2;
+        const rojo = cantidad >= 3;
+        
+        if (this.luzAmarillo) {
+            if (amarillo) this.luzAmarillo.classList.add('active');
+            else this.luzAmarillo.classList.remove('active');
+        }
+        
+        if (this.luzNaranja) {
+            if (naranja) this.luzNaranja.classList.add('active');
+            else this.luzNaranja.classList.remove('active');
+        }
+        
+        if (this.luzRojo) {
+            if (rojo) this.luzRojo.classList.add('active');
+            else this.luzRojo.classList.remove('active');
+        }
+        
+        // Taches
+        if (this.tachesContainer) {
+            this.tachesContainer.innerHTML = '';
+            
+            if (cantidad === 0) {
+                this.tachesContainer.innerHTML = '<div style="color:#5b6e8c;">Sin registros en este turno</div>';
+                return;
+            }
+            
+            for (let i = 0; i < Math.min(cantidad, 3); i++) {
+                const div = document.createElement('div');
+                div.className = 'tache';
+                div.innerText = '✗';
+                this.tachesContainer.appendChild(div);
+            }
+            
+            if (cantidad > 3) {
+                const div = document.createElement('div');
+                div.className = 'tache mas';
+                div.innerText = '+';
+                this.tachesContainer.appendChild(div);
+            }
+        }
+    }
+
+    async init() {
+        await this.obtenerRegistros();
+        // Actualizar cada minuto
+        setInterval(() => this.obtenerRegistros(), 60000);
+    }
+}
+
+// Inicializar todas las máquinas
+const maquinas = ['BCM4', 'BCM3', 'PE10', 'BCM1', 'MP22', 'MP25'];
+const semaforos = {};
+
+async function inicializarTodo() {
+    for (const maquina of maquinas) {
+        const semaforo = new SemaforoManager(maquina);
+        semaforos[maquina] = semaforo;
+        await semaforo.init();
+    }
+}
+
+inicializarTodo();
+
